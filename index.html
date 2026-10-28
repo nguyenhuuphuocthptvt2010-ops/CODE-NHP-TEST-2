@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Quản Lý Dữ Liệu với Supabase</title>
+    <!-- Thư viện Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-top: 0;
+        }
+        .status-box {
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+            font-weight: 600;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3ecf8e; /* Màu thương hiệu Supabase */
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #2eaf73;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        li {
+            background: #f8f9fa;
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🚀 WEDSITE NHẬP DỮ LIỆU LƯU TRÊN CƠ SỞ DỮ LIỆU</h2>
+    
+    <div id="status" class="status-box">Đang kết nối đến Supabase...</div>
+
+    <!-- Form gửi dữ liệu -->
+    <div class="form-group">
+        <label for="dataInput">Nhập nội dung cần lưu trữ:</label>
+        <input type="text" id="dataInput" placeholder="Nhập ghi chú hoặc thông tin bất kỳ...">
+    </div>
+    <button onclick="addData()">GỬI DỮ LIỆU LÊN MÁY CHỦ NGUYỄN HỮU PHƯỚC</button>
+
+    <h3>DANH SÁCH DỮ LIỆU ĐANG CÓ TRÊN MÁY CHỦ NGUYỄN HỮU PHƯỚC:</h3>
+    <ul id="dataList">
+        <li>Chưa có dữ liệu nào...</li>
+    </ul>
+</div>
+
+<script>
+    // 1. Dán URL và Anon Key của bạn vào đây
+    const supabaseUrl = 'https://shpgeimrysxupveqibyh.supabase.co';
+    const supabaseKey = 'sb_publishable_MUSk9i-KqoD2axABqY3DrA_pBYgkmd_';
+
+    // Khởi tạo Supabase client
+    const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const statusEl = document.getElementById('status');
+    const dataListEl = document.getElementById('dataList');
+
+    // Tự động chạy khi mở web
+    window.onload = function() {
+        if (supabaseUrl !== 'https://shpgeimrysxupveqibyh.supabase.co' && supabaseKey !== 'sb_publishable_MUSk9i-KqoD2axABqY3DrA_pBYgkmd_') {
+            statusEl.innerText = "✅ Kết nối máy chủ thành công!";
+            statusEl.className = "status-box status-success";
+            loadData(); // Tải danh sách dữ liệu từ database
+        } else {
+            statusEl.innerText = "DỰ ÁN BY NGUYỄN HỮU PHƯỚC DEMO";
+        }
+    };
+
+    // Hàm lấy dữ liệu từ Supabase về hiển thị
+    async function loadData() {
+        // Giả định tên bảng dữ liệu trên Supabase là 'notes'
+        const { data, error } = await _supabase.from('notes').select('*');
+
+        if (error) {
+            console.log("Chưa tạo bảng 'notes' hoặc lỗi:", error.message);
+            dataListEl.innerHTML = `<li>Lưu ý: Hãy tạo bảng 'notes' trên máy chủ để hiển thị dữ liệu!</li>`;
+            return;
+        }
+
+        if (data && data.length > 0) {
+            dataListEl.innerHTML = '';
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item.content || item.title || JSON.stringify(item);
+                dataListEl.appendChild(li);
+            });
+        } else {
+            dataListEl.innerHTML = `<li>Cơ sở dữ liệu chưa có dữ liệu nào.</li>`;
+        }
+    }
+
+    // Hàm thêm dữ liệu mới lên Supabase
+    async function addData() {
+        const input = document.getElementById('dataInput');
+        const text = input.value.trim();
+
+        if (!text) {
+            alert("Vui lòng nhập nội dung!");
+            return;
+        }
+
+        // Thêm một hàng mới vào bảng 'notes'
+        const { data, error } = await _supabase
+            .from('notes')
+            .insert([{ content: text }]);
+
+        if (error) {
+            alert("Lỗi khi gửi dữ liệu: " + error.message + "\n(Vui lòng kiểm tra lại bạn đã tạo bảng 'notes' trên Supabase chưa)");
+        } else {
+            alert("Đã thêm dữ liệu thành công!");
+            input.value = '';
+            loadData(); // Tải lại danh sách
+        }
+    }
+</script>
+
+</body>
+</html>
